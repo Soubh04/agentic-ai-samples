@@ -1,0 +1,24 @@
+[project]
+name = "jev-vs-llm"
+version = "0.1.0"
+description = "Sample for the LinkedIn post 'Jev vs LLM': a decision model decides, plain code checks, an LLM writes."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "anthropic>=1.11,<2",
+    "typesafe-sdk>=0.7.2,<0.8",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9",
+    "httpx2>=2",  # the tests use its mock transport to replace the HTTP layer of both SDKs
+]
+
+[tool.uv]
+# A runnable sample, not a library: do not build or install it.
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
