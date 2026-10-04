@@ -1,0 +1,18 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Secrets and local configuration - never commit
+.env
+.env.*
+
+# Local tooling
+.claude/
+.mcp.json
+Archive/
+
+# OS
+.DS_Store
