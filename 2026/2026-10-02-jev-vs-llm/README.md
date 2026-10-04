@@ -5,7 +5,7 @@ tickets in three steps and lets you compare the two kinds of interface behind th
 model that returns typed answers with probabilities, and an LLM that returns JSON through
 structured outputs.
 
-LinkedIn post: (link added after publishing)
+LinkedIn post: https://www.linkedin.com/posts/soubh_agenticai-aiagents-llm-share-7512542410879500288-AHfd/
 
 ## What this sample shows
 

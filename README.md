@@ -1,12 +1,12 @@
 # Agentic AI Samples
 
-Runnable code behind Soubh's weekly LinkedIn posts on agentic AI. Every post comes with a small project you can run on your own machine in a few minutes, with tests.
+Runnable code behind [Soubh's](https://www.linkedin.com/in/soubh/) weekly LinkedIn posts on agentic AI. Every post comes with a small project you can run on your own machine in a few minutes, with tests.
 
 ## Samples
 
 | Date | Topic | Code | LinkedIn post |
 |---|---|---|---|
-| 2026-10-02 | Jev vs LLM | [2026-10-02-jev-vs-llm](2026/2026-10-02-jev-vs-llm) | Coming soon |
+| 2026-10-02 | Jev vs LLM | [2026-10-02-jev-vs-llm](2026/2026-10-02-jev-vs-llm) | [Post](https://www.linkedin.com/posts/soubh_agenticai-aiagents-llm-share-7512542410879500288-AHfd/) |
 | 2026-10-02 | How an AI agent uses MCP | [2026-10-02-how-agents-use-mcp](2026/2026-10-02-how-agents-use-mcp) | Coming soon |
 
 ## Run a sample
