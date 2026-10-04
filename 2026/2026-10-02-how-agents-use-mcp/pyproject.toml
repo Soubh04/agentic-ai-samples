@@ -1,0 +1,23 @@
+[project]
+name = "how-agents-use-mcp"
+version = "0.1.0"
+description = "Sample: how an AI agent (an MCP host) discovers and calls tools on MCP servers over stdio."
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=2.2,<3",
+    "anthropic>=1.11,<2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "httpx2>=2",  # used by the tests to fake the Anthropic HTTP layer (the SDK is built on httpx2)
+]
+
+[tool.uv]
+# This is a runnable sample, not a distributable library: do not build or install it.
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

@@ -6,6 +6,7 @@ Runnable code behind Soubh's weekly LinkedIn posts on agentic AI. Every post com
 
 | Date | Topic | Code | LinkedIn post |
 |---|---|---|---|
+| 2026-10-02 | How an AI agent uses MCP | [2026-10-02-how-agents-use-mcp](2026/2026-10-02-how-agents-use-mcp) | Coming soon |
 
 ## Run a sample
 

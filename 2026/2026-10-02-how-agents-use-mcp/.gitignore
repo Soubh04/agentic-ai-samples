@@ -1,0 +1,22 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Local runtime output (the mock email server writes here)
+outbox.jsonl
+
+# Secrets and local configuration - never commit
+.env
+.env.*
+!.env.example
+
+# Local tooling
+.claude/
+.mcp.json
+Archive/
+
+# OS
+.DS_Store
