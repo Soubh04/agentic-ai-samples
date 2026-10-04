@@ -1,0 +1,55 @@
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 1 * *"   # monthly: re-test every sample to catch SDK and API changes
+
+permissions:
+  contents: read
+
+jobs:
+  pick:
+    name: Pick samples to test
+    runs-on: ubuntu-latest
+    outputs:
+      samples: ${{ steps.pick.outputs.samples }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - id: pick
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          # Pull requests and pushes test only the sample folders they touch; scheduled and manual runs test all.
+          if [ "$EVENT" = "pull_request" ] || { [ "$EVENT" = "push" ] && [ -n "$BASE" ] && [ "$BASE" != "0000000000000000000000000000000000000000" ]; }; then
+            dirs=$(git diff --name-only "$BASE" HEAD | grep -E '^[0-9]{4}/[^/]+/' | cut -d/ -f1-2 | sort -u || true)
+          else
+            dirs=$(ls -d [0-9][0-9][0-9][0-9]/*/ 2>/dev/null | sed 's#/$##' || true)
+          fi
+          json=$(for d in $dirs; do if [ -f "$d/pyproject.toml" ]; then echo "$d"; fi; done | jq -R . | jq -sc .)
+          echo "samples=$json" >> "$GITHUB_OUTPUT"
+          echo "Samples to test: $json"
+
+  test:
+    name: ${{ matrix.sample }}
+    needs: pick
+    if: needs.pick.outputs.samples != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: ${{ fromJSON(needs.pick.outputs.samples) }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.sample }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+      - run: uv sync --frozen
+      - run: uv run --frozen pytest -q

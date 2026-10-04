@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Runtime output from the samples
+outbox.jsonl
+
+# Secrets and local configuration: never commit
+.env
+.env.*
+!.env.example
+
+# Local tooling and notes
+.claude/
+.mcp.json
+Archive/
+Project.md
+
+# OS
+.DS_Store
