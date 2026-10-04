@@ -53,3 +53,17 @@ jobs:
       - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
       - run: uv sync --frozen
       - run: uv run --frozen pytest -q
+
+  tests-passed:
+    name: tests-passed
+    needs: [pick, test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every picked sample passed (the check that protects main)
+        env:
+          PICK: ${{ needs.pick.result }}
+          TEST: ${{ needs.test.result }}
+        run: |
+          echo "pick=$PICK test=$TEST"
+          [ "$PICK" = "success" ] && { [ "$TEST" = "success" ] || [ "$TEST" = "skipped" ]; }
