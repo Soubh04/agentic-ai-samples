@@ -8,6 +8,7 @@ Runnable code behind [Soubh's](https://www.linkedin.com/in/soubh/) weekly Linked
 |---|---|---|---|
 | 2026-10-02 | Jev vs LLM | [2026-10-02-jev-vs-llm](2026/2026-10-02-jev-vs-llm) | [Post](https://www.linkedin.com/posts/soubh_agenticai-aiagents-llm-share-7512542410879500288-AHfd/) |
 | 2026-10-02 | How an AI agent uses MCP | [2026-10-02-how-agents-use-mcp](2026/2026-10-02-how-agents-use-mcp) | Coming soon |
+| 2026-10-07 | The life of an AI agent in Microsoft Foundry | [2026-10-07-life-of-an-agent-in-foundry](2026/2026-10-07-life-of-an-agent-in-foundry) | Coming soon |
 
 ## Run a sample
 
@@ -19,7 +20,7 @@ cd agentic-ai-samples/2026/<folder>
 uv run pytest -q
 ```
 
-The folder's own README shows the command that runs the demo. Samples run offline with mock data by default; live modes read API keys from environment variables only.
+The folder's own README shows the command that runs the demo. Some samples run offline with mock data. Samples for cloud services (for example Microsoft Foundry) need your own subscription and keys, which they read from environment variables only. Tests always run offline, without credentials.
 
 ## How this repository is organised
 
