@@ -9,6 +9,7 @@ Runnable code behind [Soubh's](https://www.linkedin.com/in/soubh/) weekly Linked
 | 2026-10-02 | Jev vs LLM | [2026-10-02-jev-vs-llm](2026/2026-10-02-jev-vs-llm) | [Post](https://www.linkedin.com/posts/soubh_agenticai-aiagents-llm-share-7512542410879500288-AHfd/) |
 | 2026-10-02 | How an AI agent uses MCP | [2026-10-02-how-agents-use-mcp](2026/2026-10-02-how-agents-use-mcp) | Coming soon |
 | 2026-10-07 | The life of an AI agent in Microsoft Foundry | [2026-10-07-life-of-an-agent-in-foundry](2026/2026-10-07-life-of-an-agent-in-foundry) | Coming soon |
+| 2026-10-13 | 8 types of RAG, and when to use each | [2026-10-13-types-of-rag](2026/2026-10-13-types-of-rag) | Coming soon |
 
 ## Run a sample
 
