@@ -175,9 +175,16 @@ class LongTermMemory:
         scored.sort(key=lambda pair: (pair[0], pair[1].updated_at, pair[1].order), reverse=True)
         return [m for _, m in scored[:k]]
 
+    def get(self, scope: str, key: str) -> Memory | None:
+        """The current memory for one key, or None if it was never kept, has expired or was deleted."""
+        _require(scope, "scope")
+        self._expire(scope)
+        return self._scopes.get(scope, {}).get(key)
+
     def forget_scope(self, scope: str) -> int:
         """Delete everything kept for one scope, for example on a user's deletion request."""
         _require(scope, "scope")
+        self._expire(scope)  # count only what was still kept
         return len(self._scopes.pop(scope, {}))
 
     def _expire(self, scope: str) -> None:
@@ -225,8 +232,12 @@ class Session:
         self.short_term.add(role, text)
 
     def prompt(self) -> str:
-        """The profile loaded at the start, plus anything the latest user message matches."""
-        memories = list(self.profile)
+        """The profile loaded at the start, plus anything the latest user message matches.
+
+        Each profile memory is read again from the store, so a fact deleted or expired mid-session
+        never reaches the model.
+        """
+        memories = [m for m in (self.long_term.get(self.scope, p.key) for p in self.profile) if m is not None]
         last_user = next((t.text for t in reversed(self.short_term.turns) if t.role == "user"), None)
         if last_user is not None:
             known = {m.key for m in memories}

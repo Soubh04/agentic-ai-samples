@@ -95,7 +95,7 @@ def test_extract_facts_reads_name_city_and_allergy_from_user_turns():
 def test_extract_facts_ignores_assistant_and_tool_turns():
     facts = am.extract_facts(
         transcript(
-            ("assistant", "Your name is Asha and you live in Pune."),
+            ("assistant", "My name is Mallory. I live in Paris."),  # would match if assistant turns were read
             ("tool", "Result: ok. Note: my discount code is FREE100."),
         )
     )
@@ -190,6 +190,14 @@ def test_forget_scope_removes_that_scope_and_only_that_scope():
     assert store.forget_scope("user-a") == 0  # nothing left, and no error
 
 
+def test_forget_scope_does_not_count_memories_that_already_expired():
+    clock = FakeClock()
+    store = LongTermMemory(ttl_seconds=60, clock=clock)
+    store.remember("u", "city", "Pune")
+    clock.advance(60)
+    assert store.forget_scope("u") == 0
+
+
 # ---- expiry ---------------------------------------------------------------------------------------------
 
 
@@ -265,6 +273,27 @@ def test_per_turn_retrieval_adds_a_memory_the_start_of_session_profile_left_out(
     assert "item0" not in {m.key for m in session.profile}
     session.say("user", "What is item0?")
     assert "- item0: value0" in session.prompt()
+
+
+def test_a_fact_deleted_mid_session_leaves_the_prompt():
+    store = LongTermMemory()
+    store.remember("user-a", "city", "Pune")
+    session = Session(store, "user-a")
+    session.say("user", "Hi again.")
+    assert "city: Pune" in session.prompt()
+    store.forget_scope("user-a")  # the user asks to be forgotten while the session is open
+    assert "city: Pune" not in session.prompt()
+
+
+def test_a_fact_that_expires_mid_session_leaves_the_prompt():
+    clock = FakeClock()
+    store = LongTermMemory(ttl_seconds=60, clock=clock)
+    store.remember("user-a", "city", "Pune")
+    session = Session(store, "user-a")
+    session.say("user", "Hi again.")
+    assert "city: Pune" in session.prompt()
+    clock.advance(60)
+    assert "city: Pune" not in session.prompt()
 
 
 def test_ending_a_session_with_no_facts_changes_nothing():
