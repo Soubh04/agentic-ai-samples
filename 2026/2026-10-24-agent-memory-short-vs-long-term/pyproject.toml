@@ -1,0 +1,19 @@
+[project]
+name = "agent-memory-short-vs-long-term"
+version = "0.1.0"
+description = "Sample: short-term (session transcript) vs long-term (per-user facts) agent memory, offline, standard library only."
+requires-python = ">=3.10"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+]
+
+[tool.uv]
+# This is a runnable sample, not a distributable library: do not build or install it.
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
