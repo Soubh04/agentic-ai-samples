@@ -1,0 +1,24 @@
+[project]
+name = "ai-agent-stack-azure-aws-gcp"
+version = "0.1.0"
+description = "Sample: the same prompt sent to one chat model on Azure, AWS and Google Cloud, plus a map of the 13-layer managed agent stack on each cloud."
+requires-python = ">=3.10"
+dependencies = [
+    "openai>=2.46,<4",
+    "azure-identity>=1.26",
+    "boto3>=1.43",
+    "google-genai>=2.33,<3",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+]
+
+[tool.uv]
+# This is a runnable sample, not a distributable library: do not build or install it.
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
