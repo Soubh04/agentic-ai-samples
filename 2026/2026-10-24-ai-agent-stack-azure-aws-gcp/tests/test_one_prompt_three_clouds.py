@@ -225,6 +225,21 @@ def test_azure_client_uses_the_v1_base_url_and_an_entra_token_provider(monkeypat
     assert str(client.base_url) == "https://example.invalid/openai/v1/"
 
 
+def test_azure_client_passes_an_entra_token_provider_for_the_foundry_scope_as_the_api_key(monkeypatch):
+    import azure.identity
+    import openai
+
+    credential, provider, seen = object(), (lambda: "token"), {}
+    monkeypatch.setattr(azure.identity, "DefaultAzureCredential", lambda: credential)
+    monkeypatch.setattr(azure.identity, "get_bearer_token_provider",
+                        lambda cred, scope: seen.update(cred=cred, scope=scope) or provider)
+    monkeypatch.setattr(openai, "OpenAI", lambda **kwargs: seen.update(kwargs) or SimpleNamespace(**kwargs))
+    m.azure_client({"endpoint": "https://example.invalid", "deployment": "d"})
+    assert seen["cred"] is credential
+    assert seen["scope"] == "https://ai.azure.com/.default"
+    assert seen["api_key"] is provider  # a token provider, never a key string
+
+
 def test_aws_client_is_bedrock_runtime_in_the_configured_region(monkeypatch):
     import boto3
 
@@ -265,6 +280,18 @@ def test_a_named_cloud_with_one_missing_setting_names_only_that_one(capsys):
 
 def test_a_blank_setting_counts_as_missing(capsys):
     assert m.main(["--cloud", "azure"], env={**ENV, "AZURE_OPENAI_ENDPOINT": "  "}, client_factories=NO_CLIENTS) == 2
+
+
+def test_a_setting_left_as_its_env_example_placeholder_counts_as_missing(capsys):
+    example = Path(__file__).resolve().parent.parent / ".env.example"
+    env = dict(line.split("=", 1) for line in example.read_text().splitlines() if line and not line.startswith("#"))
+    env.update({"AWS_REGION": "eu-west-1", "BEDROCK_MODEL_ID": "example.model-v1:0"})  # only AWS filled in
+    aws = FakeAws()
+    fakes, built = factories(aws=aws)
+    assert m.main([], env=env, client_factories=fakes) == 0
+    out = capsys.readouterr().out
+    assert "Skipping azure" in out and "Skipping gcp" in out
+    assert list(built) == ["aws"]
 
 
 def test_a_named_cloud_ignores_the_other_clouds_settings(capsys):
@@ -352,6 +379,7 @@ def test_map_prints_names_and_statuses_from_the_data(capsys):
     for _, *entries in m.STACK:
         for entry in entries:
             assert " ".join(f"{entry.name} | {entry.status}".split()) in flat
+            assert entry.url in flat  # the README promises a source link for every entry
 
 
 def test_the_readme_table_matches_the_stack_data():

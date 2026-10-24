@@ -19,6 +19,7 @@ Exit codes: 0 ok, 1 at least one cloud call failed, 2 missing configuration or i
 
 import argparse
 import os
+import re
 import sys
 import textwrap
 from collections import namedtuple
@@ -31,6 +32,7 @@ SETTINGS = {
     "aws": {"region": "AWS_REGION", "model": "BEDROCK_MODEL_ID"},
     "gcp": {"project": "GOOGLE_CLOUD_PROJECT", "location": "GOOGLE_CLOUD_LOCATION", "model": "GEMINI_MODEL"},
 }
+PLACEHOLDER = re.compile(r"<[^<>]+>")  # an unedited .env.example value, e.g. <your-gcp-project-id>
 TITLES = {
     "azure": "Azure: Microsoft Foundry, Responses API",
     "aws": "AWS: Amazon Bedrock, Converse API",
@@ -182,7 +184,7 @@ STACK = [  # (layer, Azure, AWS, Google Cloud)
            _GC + "models/evaluation-overview")),
     ("12 Workflow and automation",
      Entry("Microsoft Agent Framework workflows; Foundry Routines; Foundry workflows",
-           "Agent Framework 1.0 GA 2026-04-03; Routines: status unclear (a GA table says GA, a July 2026 post says public preview); Foundry workflows: Preview, retiring 2026-12-01",
+           "Agent Framework 1.0 GA 2026-04-03 (workflows not labelled separately); Routines: status unclear (a GA table says GA, a July 2026 post says public preview); Foundry workflows: Preview, retiring 2026-12-01",
            _MS + "azure/foundry/agents/concepts/workflow"),
      Entry("AWS Step Functions AgentCore InvokeHarness integration; Amazon Bedrock Flows", "No status label",
            _AWS + "step-functions/latest/dg/connect-bedrockagentcore.html"),
@@ -208,14 +210,18 @@ def print_map():
         for cloud, entry in zip(("Azure", "AWS", "Google Cloud"), entries):
             text = f"{cloud:<14}{entry.name} | {entry.status}"
             print(textwrap.fill(text, width=110, initial_indent="  ", subsequent_indent=" " * 16))
+            print(" " * 16 + entry.url)
 
 
 # ---------- run ----------
 
 def load_settings(cloud, env):
-    """Return (settings, missing variable names) for one cloud. A blank value counts as missing."""
+    """Return (settings, missing variable names) for one cloud.
+
+    A blank value counts as missing, and so does one still holding a .env.example placeholder such as <your-region>.
+    """
     names = SETTINGS[cloud]
-    missing = [var for var in names.values() if not env.get(var, "").strip()]
+    missing = [var for var in names.values() if not env.get(var, "").strip() or PLACEHOLDER.search(env[var])]
     return {key: env[var].strip() for key, var in names.items()} if not missing else {}, missing
 
 

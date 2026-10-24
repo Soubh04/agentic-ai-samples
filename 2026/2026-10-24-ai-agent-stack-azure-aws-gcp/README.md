@@ -56,7 +56,7 @@ You also need [uv](https://docs.astral.sh/uv/) and Python 3.10 or later.
 ## Setup and run
 
 ```bash
-cp .env.example .env        # then edit .env: fill in the clouds you want to try, leave the others as they are
+cp .env.example .env        # then edit .env: fill in the clouds you want; unedited <placeholders> are skipped
 az login                    # Azure
 aws sso login --profile <your-profile> && export AWS_PROFILE=<your-profile>   # AWS
 gcloud auth application-default login                                         # Google Cloud
@@ -97,9 +97,9 @@ and 11. Layer 6 (embedding models) and layer 12 (workflow and automation) are in
 
 ## The 13-layer stack, layer by layer
 
-Names, status and links as checked on 2026-10-24. Each link is the official vendor page for that product. Some status
-wording and dates come from the vendor's release notes, What's New posts or a Microsoft GA table rather than from the linked
-page, so check the vendor pages before you rely on a status.
+Names, status and links as checked on 2026-10-24. Each link is an official vendor page: documentation, release notes or
+the vendor's own blog. Some status wording and dates come from the vendor's release notes, What's New posts or a
+Microsoft GA table rather than from the linked page, so check the vendor pages before you rely on a status.
 
 - **GA** and **Preview** are the vendor's own words.
 - **No status label** means the vendor page shows neither word. It does not mean the product is in preview.
@@ -118,10 +118,10 @@ page, so check the vendor pages before you rely on a status.
 | 9 Guardrails and content safety | [Guardrails and controls in Microsoft Foundry](https://learn.microsoft.com/en-us/azure/foundry/guardrails/guardrails-overview)<br>GA for models; Preview for agents | [Amazon Bedrock Guardrails; AgentCore Policy](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html)<br>Guardrails: no status label; AgentCore Policy: GA 2026-03-03 | [Model Armor](https://docs.cloud.google.com/model-armor/overview)<br>Overview page: no status label; Model Armor for Agent Gateway: GA 2026-06-24 |
 | 10 Observability and tracing | [Foundry Observability](https://learn.microsoft.com/en-us/azure/foundry/concepts/observability)<br>Tracing: GA for prompt and hosted agents, Preview for workflow and external agents | [Amazon Bedrock AgentCore Observability](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability.html)<br>GA since 2025-10-13 | [Agent Observability on Gemini Enterprise Agent Platform](https://docs.cloud.google.com/gemini-enterprise-agent-platform/release-notes)<br>GA 2026-06-18 (Preview from 2026-04-22) |
 | 11 Evaluation | [Evaluation in Microsoft Foundry](https://learn.microsoft.com/en-us/azure/foundry/concepts/evaluation-overview)<br>GA (some evaluators: Preview) | [Amazon Bedrock AgentCore Evaluations; Amazon Bedrock evaluations](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluations.html)<br>AgentCore Evaluations: GA 2026-03-31; Bedrock evaluations: no status label | [Gen AI evaluation service (Gen AI evals)](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/evaluation-overview)<br>Status unclear (overview page shows no label; agent evaluation status not verified) |
-| 12 Workflow and automation | [Microsoft Agent Framework workflows; Foundry Routines; Foundry workflows](https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/workflow)<br>Agent Framework 1.0 GA 2026-04-03; Routines: status unclear (a GA table says GA, a July 2026 post says public preview); Foundry workflows: Preview, retiring 2026-12-01 | [AWS Step Functions AgentCore InvokeHarness integration; Amazon Bedrock Flows](https://docs.aws.amazon.com/step-functions/latest/dg/connect-bedrockagentcore.html)<br>No status label | [ADK workflow agents and graph workflows (ADK 2.0)](https://docs.cloud.google.com/gemini-enterprise-agent-platform/build/adk)<br>TypeScript 2.0: GA; Python: no status label |
+| 12 Workflow and automation | [Microsoft Agent Framework workflows; Foundry Routines; Foundry workflows](https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/workflow)<br>Agent Framework 1.0 GA 2026-04-03 (workflows not labelled separately); Routines: status unclear (a GA table says GA, a July 2026 post says public preview); Foundry workflows: Preview, retiring 2026-12-01 | [AWS Step Functions AgentCore InvokeHarness integration; Amazon Bedrock Flows](https://docs.aws.amazon.com/step-functions/latest/dg/connect-bedrockagentcore.html)<br>No status label | [ADK workflow agents and graph workflows (ADK 2.0)](https://docs.cloud.google.com/gemini-enterprise-agent-platform/build/adk)<br>TypeScript 2.0: GA; Python: no status label |
 | 13 Agent identity and governance | [Microsoft Entra Agent ID; Foundry control plane](https://learn.microsoft.com/en-us/entra/agent-id/what-is-microsoft-entra-agent-id)<br>Entra Agent ID: GA (April 2026 release notes); Foundry control plane: Preview | [Amazon Bedrock AgentCore Identity; AgentCore Policy; AWS Agent Registry](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html)<br>Identity: GA 2025-10-13; Policy: GA 2026-03-03; Registry: GA August 2026 | [Agent Identity; Agent Registry; Agent Gateway](https://docs.cloud.google.com/gemini-enterprise-agent-platform/govern)<br>Agent Identity: status unclear (GA on 2026-04-22 per release notes, but its API is Preview as of 2026-06-18); Registry and Gateway: GA 2026-06-18 |
 
-### Renamed in 2026
+### Renamed
 
 Older articles and SDK pages still use the old names.
 
@@ -163,8 +163,8 @@ unconfigured clouds and running the rest, one cloud's error not stopping the oth
 non-empty entries and an https source each, and the README table matching the data.
 
 ```text
-................................                                         [100%]
-32 passed in 1.27s
+..................................                                       [100%]
+34 passed in 0.66s
 ```
 
 All data is fictional.
