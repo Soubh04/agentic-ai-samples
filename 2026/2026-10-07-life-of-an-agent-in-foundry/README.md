@@ -3,7 +3,7 @@
 A small Python script that walks one agent through its life in Microsoft Foundry:
 **Build, Test, Evaluate, Route, Roll back**. It accompanies the LinkedIn post "The life of an AI agent in Microsoft Foundry".
 
-LinkedIn post: (link added after publishing)
+LinkedIn post: https://www.linkedin.com/posts/soubh_microsoftfoundry-responsibleai-agenticai-share-7513946007811051520-3-pr/
 
 > **Not run against a live Foundry project by the author.** The script's SDK calls follow the official
 > [azure-ai-projects samples](https://github.com/Azure/azure-sdk-for-python/tree/main/sdk/ai/azure-ai-projects/samples)
