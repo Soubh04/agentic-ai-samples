@@ -11,7 +11,7 @@ Runnable code behind [Soubh's](https://www.linkedin.com/in/soubh/) weekly Linked
 | 2026-10-07 | The life of an AI agent in Microsoft Foundry | [2026-10-07-life-of-an-agent-in-foundry](2026/2026-10-07-life-of-an-agent-in-foundry) | [Post](https://www.linkedin.com/posts/soubh_microsoftfoundry-responsibleai-agenticai-share-7513946007811051520-3-pr/) |
 | 2026-10-13 | 8 types of RAG, and when to use each | [2026-10-13-types-of-rag](2026/2026-10-13-types-of-rag) | [Post](https://www.linkedin.com/posts/soubh_rag-agenticai-azureai-share-7515730514943586304-sVpF/) |
 | 2026-10-24 | Agent memory: short-term vs long-term | [2026-10-24-agent-memory-short-vs-long-term](2026/2026-10-24-agent-memory-short-vs-long-term) | Coming soon |
-| 2026-10-24 | Azure vs AWS vs Google Cloud: the agent stack | [2026-10-24-ai-agent-stack-azure-aws-gcp](2026/2026-10-24-ai-agent-stack-azure-aws-gcp) | Coming soon |
+| 2026-10-24 | Azure vs AWS vs Google Cloud: the agent stack | [2026-10-24-ai-agent-stack-azure-aws-gcp](2026/2026-10-24-ai-agent-stack-azure-aws-gcp) | [Post](https://www.linkedin.com/posts/soubh_agenticai-azure-aws-share-7519810690413383681-Kc8O/) |
 
 ## Run a sample
 

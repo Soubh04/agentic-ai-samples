@@ -5,7 +5,7 @@ The post compares the managed AI agent stack on the three clouds. The script doe
 one chat model on each cloud and prints the three replies, which is the model layer, the only layer you can call in a few
 lines. And `--map` prints the full 13-layer stack table with each cloud's official names and status.
 
-LinkedIn post: (link added after publishing)
+LinkedIn post: https://www.linkedin.com/posts/soubh_agenticai-azure-aws-share-7519810690413383681-Kc8O/
 
 > **Not run against live Azure, AWS or Google Cloud resources by the author.** The SDK calls follow the vendors' own
 > examples ([Azure OpenAI v1 API with the Responses API](https://learn.microsoft.com/en-us/azure/foundry/openai/supported-languages),
