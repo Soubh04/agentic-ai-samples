@@ -3,7 +3,7 @@
 A small Python script that runs four of the eight RAG types from the LinkedIn post "8 types of RAG, and when to use each"
 on the same tiny knowledge base, so you can see where each one wins and where it misses.
 
-LinkedIn post: (link added after publishing)
+LinkedIn post: https://www.linkedin.com/posts/soubh_rag-agenticai-azureai-share-7515730514943586304-sVpF/
 
 > **Not run against a live Azure resource by the author.** The SDK calls follow the official
 > [Azure OpenAI v1 API guide](https://learn.microsoft.com/en-us/azure/foundry/openai/api-version-lifecycle)
