@@ -12,6 +12,7 @@ Runnable code behind [Soubh's](https://www.linkedin.com/in/soubh/) weekly Linked
 | 2026-10-13 | 8 types of RAG, and when to use each | [2026-10-13-types-of-rag](2026/2026-10-13-types-of-rag) | [Post](https://www.linkedin.com/posts/soubh_rag-agenticai-azureai-share-7515730514943586304-sVpF/) |
 | 2026-10-24 | Agent memory: short-term vs long-term | [2026-10-24-agent-memory-short-vs-long-term](2026/2026-10-24-agent-memory-short-vs-long-term) | Coming soon |
 | 2026-10-24 | Azure vs AWS vs Google Cloud: the agent stack | [2026-10-24-ai-agent-stack-azure-aws-gcp](2026/2026-10-24-ai-agent-stack-azure-aws-gcp) | [Post](https://www.linkedin.com/posts/soubh_agenticai-azure-aws-share-7519810690413383681-Kc8O/) |
+| 2026-10-28 | Evaluating AI agents: what to measure before you ship | [2026-10-28-evaluating-ai-agents](2026/2026-10-28-evaluating-ai-agents) | [Post](https://www.linkedin.com/posts/soubh_agenticai-aiagents-llmevaluation-share-7521280093390909442-FxeD/) |
 
 ## Run a sample
 

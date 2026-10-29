@@ -1,0 +1,8 @@
+{"id": "t01", "goal": "book BLR to DEL on 4 Nov", "action": "book", "scenario": "domestic", "expect": {"bookings": 1}, "reset": "fresh_sandbox"}
+{"id": "t02", "goal": "book BOM to MAA on 6 Nov", "action": "book", "scenario": "domestic", "expect": {"bookings": 1}, "reset": "fresh_sandbox"}
+{"id": "t03", "goal": "book HYD to CCU on 9 Nov", "action": "book", "scenario": "domestic", "expect": {"bookings": 1}, "reset": "fresh_sandbox"}
+{"id": "t04", "goal": "book DEL to DXB on 12 Nov", "action": "book", "scenario": "international", "expect": {"bookings": 1}, "reset": "fresh_sandbox"}
+{"id": "t05", "goal": "book BOM to SIN on 14 Nov", "action": "book", "scenario": "international", "expect": {"bookings": 1}, "reset": "fresh_sandbox"}
+{"id": "t06", "goal": "cancel the BLR to GOI booking on 5 Nov", "action": "cancel", "scenario": "cancel", "setup": {"bookings": 1}, "expect": {"bookings": 0}, "reset": "fresh_sandbox"}
+{"id": "t07", "goal": "book LHR to JFK on 3 Nov", "action": "book", "scenario": "international", "expect": {"bookings": 1}, "reset": "fresh_sandbox"}
+{"id": "t08", "goal": "cancel the DEL to LHR booking on 20 Nov", "action": "cancel", "scenario": "cancel", "setup": {"bookings": 1}, "expect": {"bookings": 0}, "reset": "fresh_sandbox"}

@@ -1,0 +1,19 @@
+[project]
+name = "evaluating-ai-agents"
+version = "0.1.0"
+description = "Sample: an offline agent eval harness in six blocks, from a task file and outcome grading to pass^k and a CI gate."
+requires-python = ">=3.10"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+]
+
+[tool.uv]
+# This is a runnable sample, not a distributable library: do not build or install it.
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
