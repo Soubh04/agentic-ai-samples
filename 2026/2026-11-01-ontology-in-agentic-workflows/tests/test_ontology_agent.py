@@ -104,10 +104,15 @@ def test_list_entity_types_tool_returns_synonyms_and_tables(graph):
     assert rows["Shipment"]["table"] == "wms.shipments"
 
 
-def test_search_ontology_resolves_a_synonym_and_its_relations(graph):
-    assert oa.search_ontology(graph, "buyer") == {"term": "buyer", "entity": "Customer",
-                                                  "relations": ["placedBy", "shipsTo"]}
-    assert oa.search_ontology(graph, "invoice") == {"term": "invoice", "entity": None, "relations": []}
+def test_resolve_term_tool_returns_the_entity_and_its_relations(graph):
+    assert oa.resolve_term(graph, "buyer") == {"term": "buyer", "entity": "Customer",
+                                               "relations": ["placedBy", "shipsTo"]}
+    assert oa.resolve_term(graph, "invoice") == {"term": "invoice", "entity": None, "relations": []}
+
+
+@pytest.mark.parametrize("word, rels", [("purchase", ["placedBy"]), ("parcel", ["shipsTo"])])
+def test_resolve_term_lists_relations_where_the_entity_is_the_domain(graph, word, rels):
+    assert oa.resolve_term(graph, word)["relations"] == rels
 
 
 # ---------- 5. Contract ----------
@@ -120,7 +125,7 @@ def test_tool_enums_are_generated_from_the_ontology(graph):
 
 
 def test_a_new_class_and_relation_reach_the_enums_without_editing_code(graph):
-    graph.add((SHOP.Invoice, RDF.type, OWL.Class))
+    add_class(graph, "Invoice", "inv", "fin.invoices")
     graph.add((SHOP.billedTo, RDF.type, OWL.ObjectProperty))
     graph.add((SHOP.billedTo, RDFS.domain, SHOP.Invoice))
     graph.add((SHOP.billedTo, RDFS.range, SHOP.Customer))
@@ -165,10 +170,10 @@ def test_gate_rejects_a_wrong_range_and_says_what_it_got(graph, shapes):
     assert "placedBy: range is Customer, got Shipment" in result["content"][0]["text"]
 
 
-def test_gate_rejects_a_reversed_link_on_its_domain(graph, shapes):
+def test_gate_rejects_a_reversed_link_on_domain_and_range_in_a_fixed_order(graph, shapes):
     result = oa.call_tool(graph, shapes, "propose_link", link("cust:8", "placedBy", "order:43"))
-    assert result["isError"] is True
-    assert "placedBy: domain is Order, got Customer" in result["content"][0]["text"]
+    assert result == oa.tool_result("Rejected cust:8 placedBy order:43: placedBy: domain is Order, got Customer; "
+                                    "placedBy: range is Customer, got Order", True)
 
 
 def test_gate_rejects_an_instance_that_has_no_row(graph, shapes):
@@ -176,22 +181,32 @@ def test_gate_rejects_an_instance_that_has_no_row(graph, shapes):
     assert result == oa.tool_result("Unknown instance: cust:99", True)
 
 
-def test_unknown_tool_is_an_error_result(graph, shapes):
-    assert oa.call_tool(graph, shapes, "delete_everything", {})["isError"] is True
+def test_unknown_tool_is_a_json_rpc_protocol_error_not_a_tool_result(graph, shapes):
+    assert oa.call_tool(graph, shapes, "delete_everything", {}) == {
+        "error": {"code": -32602, "message": "Unknown tool: delete_everything"}}
 
 
-def test_error_results_have_the_mcp_shape():
+def test_tool_results_have_the_mcp_shape():
     result = oa.tool_result("x", True)
-    assert result == {"content": [{"type": "text", "text": "x"}], "isError": True}
+    assert result == {"resultType": "complete", "content": [{"type": "text", "text": "x"}], "isError": True}
 
 
 # ---------- The demo and the command line ----------
 
-def test_demo_blocks_two_of_five_planner_actions(graph):
+def test_demo_blocks_two_of_five_planner_actions_and_the_planner_corrects_one(graph):
     lines = []
     counts = oa.run_demo(graph, oa.load_actions(), out=lines.append)
-    assert counts == {"synonyms": 3, "entity_types": 1, "actions": 5, "blocked": 2}
-    assert "2 of 5 planner actions blocked before they ran." in lines
+    assert counts == {"synonyms": 3, "entity_types": 1, "actions": 5, "blocked": 2, "corrected": 1}
+    assert "2 of 5 planner actions blocked before they ran; 1 corrected on retry." in lines
+
+
+def test_a_retry_runs_only_after_an_error(graph):
+    accepted = {"tool": "propose_link", "arguments": link("order:42", "placedBy", "cust:7"),
+                "retry": link("order:42", "placedBy", "ship:9")}
+    lines = []
+    counts = oa.run_demo(graph, [accepted], out=lines.append)
+    assert counts["blocked"] == 0 and counts["corrected"] == 0
+    assert not any("retries" in line for line in lines)
 
 
 def test_main_runs_the_demo_and_exits_0(capsys):
@@ -250,3 +265,90 @@ def test_main_exits_2_when_the_actions_file_is_missing(tmp_path, capsys):
 def test_label_literal_language_tags_still_resolve(graph):
     graph.add((SHOP.Customer, SKOS.altLabel, Literal("patron", lang="en")))
     assert oa.resolve_entity(graph, "patron") == "Customer"
+
+
+# ---------- Review follow-ups: generated ID pattern, ontology checks, subclasses, actions file ----------
+
+def add_class(graph, name, prefix, table, label=None):
+    cls = SHOP[name]
+    graph.add((cls, RDF.type, OWL.Class))
+    graph.add((cls, oa.BIND.table, Literal(table)))
+    graph.add((cls, oa.BIND.key, Literal("id")))
+    graph.add((cls, oa.BIND.idPrefix, Literal(prefix)))
+    if label:
+        graph.add((cls, SKOS.altLabel, Literal(label)))
+    return cls
+
+
+def test_id_pattern_is_generated_from_the_binding_prefixes(graph):
+    add_class(graph, "Invoice", "inv2", "fin.invoices")
+    schema = oa.build_tool_schemas(graph)["propose_link"]
+    assert oa.check_arguments(schema, link("inv2:A.1", "placedBy", "cust:7")) == []
+    assert oa.check_arguments(schema, link("vendor:7", "placedBy", "cust:7")) != []
+
+
+def test_subclass_instances_pass_the_gate_through_the_ontology(graph):
+    vip = add_class(graph, "VipCustomer", "vip", "crm.vip")
+    graph.add((vip, RDFS.subClassOf, SHOP.Customer))
+    shapes = oa.build_shapes(graph)
+    tables = {**oa.FAKE_TABLES, "crm.vip": {"1"}}
+    result = oa.call_tool(graph, shapes, "propose_link", link("order:42", "placedBy", "vip:1"), tables)
+    assert result["isError"] is False
+
+
+def test_a_label_shared_by_two_classes_is_an_ontology_error(graph):
+    add_class(graph, "Supplier", "sup", "erp.suppliers", label="buyer")
+    with pytest.raises(oa.OntologyError, match="buyer"):
+        oa.check_ontology(graph)
+
+
+def test_two_classes_with_one_id_prefix_is_an_ontology_error(graph):
+    add_class(graph, "Supplier", "cust", "erp.suppliers")
+    with pytest.raises(oa.OntologyError, match="cust"):
+        oa.check_ontology(graph)
+
+
+def test_a_range_that_is_not_a_declared_class_is_an_ontology_error(graph):
+    graph.add((SHOP.billedTo, RDF.type, OWL.ObjectProperty))
+    graph.add((SHOP.billedTo, RDFS.domain, SHOP.Order))
+    graph.add((SHOP.billedTo, RDFS.range, SHOP.Payer))
+    with pytest.raises(oa.OntologyError, match="Payer"):
+        oa.check_ontology(graph)
+
+
+@pytest.mark.parametrize("domains", [[], ["Order", "Shipment"]])
+def test_a_relation_needs_exactly_one_domain(graph, domains):
+    graph.add((SHOP.billedTo, RDF.type, OWL.ObjectProperty))
+    graph.add((SHOP.billedTo, RDFS.range, SHOP.Customer))
+    for d in domains:
+        graph.add((SHOP.billedTo, RDFS.domain, SHOP[d]))
+    with pytest.raises(oa.OntologyError, match="billedTo"):
+        oa.relations(graph)
+
+
+def test_properties_outside_the_shop_namespace_are_ignored(graph):
+    other = oa.Namespace("https://example.org/other#")
+    graph.add((other.placedBy, RDF.type, OWL.ObjectProperty))
+    graph.add((other.placedBy, RDFS.domain, SHOP.Order))
+    graph.add((other.placedBy, RDFS.range, SHOP.Customer))
+    assert [r.name for r in oa.relations(graph)] == ["placedBy", "shipsTo"]
+
+
+def test_actions_file_skips_blank_lines(tmp_path):
+    actions = tmp_path / "actions.jsonl"
+    line = json.dumps({"tool": "propose_link", "arguments": link("order:42", "placedBy", "cust:7")})
+    actions.write_text(f"\n{line}\n\n{line}\n", encoding="utf-8")
+    assert len(oa.load_actions(actions)) == 2
+
+
+@pytest.mark.parametrize("content", ['{"tool": "propose_link"}\n',
+                                     '{"tool": "propose_link", "arguments": {}, "retry": []}\n'])
+def test_an_action_without_arguments_or_with_a_bad_retry_is_rejected(tmp_path, content):
+    actions = tmp_path / "actions.jsonl"
+    actions.write_text(content, encoding="utf-8")
+    with pytest.raises(ValueError, match="actions.jsonl:1"):
+        oa.load_actions(actions)
+
+
+def test_main_exits_2_when_the_actions_path_is_a_directory(tmp_path, capsys):
+    assert oa.main(["--actions", str(tmp_path)]) == 2

@@ -4,10 +4,10 @@ The six layers from the LinkedIn post "Ontology in agentic workflows: name the b
   entities   one OWL class per business concept; synonyms are SKOS altLabels (ontology.ttl)
   relations  rdfs:domain and rdfs:range say which entity may link to which
   bindings   each class names its source table, key column and ID prefix; rows stay in the tables
-  tools      the agent reads the ontology through tools (list_entity_types, search_ontology), not a pasted glossary
-  contract   the tool's JSON Schema enums are generated from the ontology, with additionalProperties false
+  tools      the agent reads the ontology through tools (list_entity_types, resolve_term), not a pasted glossary
+  contract   the tools' JSON Schema enums and ID pattern are generated from the ontology, additionalProperties false
   gate       SHACL shapes, generated from domain and range, check each proposed link before it is written;
-             a failure goes back to the planner as an MCP tool result with isError true
+             a failure goes back to the planner as an MCP tool result with isError true, and the planner may retry
 
 The planner is scripted (planner_actions.jsonl) and the tables are a small in-memory fake.
 No model, no network, no cloud service.
@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -44,7 +45,7 @@ SHAPES = Namespace("https://example.org/shapes#")
 FAKE_TABLES: dict[str, set[str]] = {
     "crm.customers": {"7", "8"},
     "sales.orders": {"42", "43"},
-    "wms.shipments": {"9"},
+    "wms.shipments": {"9", "10"},
 }
 
 
@@ -80,7 +81,20 @@ def load_ontology(path: Path = ONTOLOGY_FILE) -> Graph:
         raise OntologyError(f"cannot parse {path}: {exc}") from exc
     if not entity_types(graph):
         raise OntologyError(f"{path} declares no owl:Class")
+    check_ontology(graph)
     return graph
+
+
+def check_ontology(graph: Graph) -> None:
+    """Fail early on an ambiguous or incomplete ontology instead of resolving or rejecting silently later."""
+    relations(graph)
+    bindings(graph)
+    owner: dict[str, str] = {}
+    for name in entity_types(graph):
+        for label in _labels(graph, name):
+            key = label.casefold()
+            if owner.setdefault(key, name) != name:
+                raise OntologyError(f"label {label!r} names both {owner[key]} and {name}")
 
 
 def local_name(uri: URIRef) -> str:
@@ -99,23 +113,33 @@ def resolve_entity(graph: Graph, term: str) -> str | None:
     if not wanted:
         return None
     for name in entity_types(graph):
-        cls = SHOP[name]
-        labels = {name, *(str(v) for p in (SKOS.prefLabel, SKOS.altLabel) for v in graph.objects(cls, p))}
-        if wanted in {label.casefold() for label in labels}:
+        if wanted in {label.casefold() for label in _labels(graph, name)}:
             return name
     return None
+
+
+def _labels(graph: Graph, name: str) -> set[str]:
+    cls = SHOP[name]
+    return {name, *(str(v) for p in (SKOS.prefLabel, SKOS.altLabel) for v in graph.objects(cls, p))}
 
 
 # ---------- 2. Relationships ----------
 
 def relations(graph: Graph) -> list[Relation]:
-    """Every owl:ObjectProperty with exactly one domain and one range, sorted by name."""
+    """Every owl:ObjectProperty in the shop namespace with exactly one domain and one range, both declared classes."""
+    classes = set(entity_types(graph))
     found = []
     for prop in graph.subjects(RDF.type, OWL.ObjectProperty):
+        if not (isinstance(prop, URIRef) and str(prop).startswith(str(SHOP))):
+            continue
         domains, ranges = list(graph.objects(prop, RDFS.domain)), list(graph.objects(prop, RDFS.range))
         if len(domains) != 1 or len(ranges) != 1:
             raise OntologyError(f"{local_name(prop)} needs exactly one rdfs:domain and one rdfs:range")
-        found.append(Relation(local_name(prop), local_name(domains[0]), local_name(ranges[0])))
+        rel = Relation(local_name(prop), local_name(domains[0]), local_name(ranges[0]))
+        undeclared = [c for c in (rel.domain, rel.range) if c not in classes]
+        if undeclared:
+            raise OntologyError(f"{rel.name} points at {', '.join(undeclared)}, which is not a declared owl:Class")
+        found.append(rel)
     return sorted(found, key=lambda r: r.name)
 
 
@@ -131,6 +155,10 @@ def bindings(graph: Graph) -> dict[str, Binding]:
         if missing:
             raise OntologyError(f"{name} has no binding for {', '.join(missing)}")
         out[name] = Binding(name, str(values["table"]), str(values["key"]), str(values["idPrefix"]))
+    prefixes = [b.id_prefix for b in out.values()]
+    shared = sorted({p for p in prefixes if prefixes.count(p) > 1})
+    if shared:
+        raise OntologyError(f"ID prefix {', '.join(shared)} is bound to more than one entity type")
     return out
 
 
@@ -156,8 +184,8 @@ def list_entity_types(graph: Graph) -> list[dict[str, Any]]:
             for name in entity_types(graph)]
 
 
-def search_ontology(graph: Graph, term: str) -> dict[str, Any]:
-    """Tool: resolve a word to an entity type and list the relationships it takes part in."""
+def resolve_term(graph: Graph, term: str) -> dict[str, Any]:
+    """Tool: resolve one word to an entity type and list the relationships it takes part in."""
     entity = resolve_entity(graph, term)
     if entity is None:
         return {"term": term, "entity": None, "relations": []}
@@ -168,10 +196,11 @@ def search_ontology(graph: Graph, term: str) -> dict[str, Any]:
 # ---------- 5. Contract: the tool schema is generated from the ontology ----------
 
 def build_tool_schemas(graph: Graph) -> dict[str, dict[str, Any]]:
-    """MCP tool definitions whose enums come from the ontology. Nothing here is typed by hand."""
+    """MCP tool definitions whose enums and ID pattern come from the ontology. Nothing here is typed by hand."""
     entities = entity_types(graph)
     rel_names = [r.name for r in relations(graph)]
-    id_pattern = "^[a-z]+:[0-9A-Za-z_-]+$"
+    prefixes = sorted(b.id_prefix for b in bindings(graph).values())
+    id_pattern = "^(?:" + "|".join(re.escape(p) for p in prefixes) + r"):[^\s:]+$"
     return {
         "get_entity": {
             "name": "get_entity",
@@ -229,8 +258,13 @@ def build_shapes(graph: Graph) -> Graph:
 
 
 def tool_result(text: str, is_error: bool) -> dict[str, Any]:
-    """An MCP CallToolResult: an error goes back to the model as content, so it can correct the call."""
-    return {"content": [{"type": "text", "text": text}], "isError": is_error}
+    """An MCP CallToolResult: an execution error goes back to the model as content, so it can correct the call."""
+    return {"resultType": "complete", "content": [{"type": "text", "text": text}], "isError": is_error}
+
+
+def protocol_error(message: str, code: int = -32602) -> dict[str, Any]:
+    """A JSON-RPC error, which MCP uses for protocol errors such as an unknown tool, instead of a tool result."""
+    return {"error": {"code": code, "message": message}}
 
 
 def instance_uri(instance_id: str) -> URIRef:
@@ -289,7 +323,7 @@ def call_tool(graph: Graph, shapes: Graph, name: str, arguments: Any,
         return get_entity(graph, tools[name], arguments, tables)
     if name == "propose_link":
         return gate(graph, shapes, tools[name], arguments, tables)
-    return tool_result(f"Unknown tool: {name}", True)
+    return protocol_error(f"Unknown tool: {name}")
 
 
 # ---------- The demo ----------
@@ -300,6 +334,8 @@ def load_actions(path: Path = ACTIONS_FILE) -> list[dict[str, Any]]:
         lines = path.read_text(encoding="utf-8").splitlines()
     except FileNotFoundError as exc:
         raise ValueError(f"actions file not found: {path}") from exc
+    except (OSError, UnicodeDecodeError) as exc:
+        raise ValueError(f"cannot read {path}: {exc}") from exc
     actions = []
     for number, line in enumerate(lines, 1):
         if not line.strip():
@@ -310,6 +346,8 @@ def load_actions(path: Path = ACTIONS_FILE) -> list[dict[str, Any]]:
             raise ValueError(f"{path}:{number}: not JSON ({exc.msg})") from exc
         if not isinstance(action, dict) or not isinstance(action.get("tool"), str) or "arguments" not in action:
             raise ValueError(f"{path}:{number}: needs a \"tool\" name and \"arguments\"")
+        if "retry" in action and not isinstance(action["retry"], dict):
+            raise ValueError(f"{path}:{number}: \"retry\" must be an arguments object")
         actions.append(action)
     if not actions:
         raise ValueError(f"{path} holds no actions")
@@ -339,7 +377,7 @@ def run_demo(graph: Graph, actions: Sequence[Mapping[str, Any]], out=print) -> d
 
     out("\n== 4. Tools ==")
     out("list_entity_types -> " + ", ".join(e["entity"] for e in list_entity_types(graph)))
-    out("search_ontology('buyer') -> " + json.dumps(search_ontology(graph, "buyer")))
+    out("resolve_term('buyer') -> " + json.dumps(resolve_term(graph, "buyer")))
 
     out("\n== 5. Contract ==")
     tools = build_tool_schemas(graph)
@@ -353,16 +391,30 @@ def run_demo(graph: Graph, actions: Sequence[Mapping[str, Any]], out=print) -> d
         + json.dumps(call_tool(graph, shapes, "propose_link", off_contract)))
 
     out("\n== 6. Gate ==")
-    blocked = 0
+    blocked = corrected = 0
     for action in actions:
         result = call_tool(graph, shapes, action["tool"], action["arguments"])
-        blocked += result["isError"]
-        mark = "x" if result["isError"] else "ok"
-        out(f"[{mark:>2}] {result['content'][0]['text']}")
-        if result["isError"]:
-            out("     -> " + json.dumps({"isError": True}) + " back to the planner")
-    out(f"{blocked} of {len(actions)} planner actions blocked before they ran.")
-    return {"synonyms": len(synonyms), "entity_types": len(targets), "actions": len(actions), "blocked": blocked}
+        if not _failed(result):
+            out(f"[ok] {_text(result)}")
+            continue
+        blocked += 1
+        out(f"[ x] {_text(result)}")
+        out("     -> " + json.dumps({"isError": True}) + " back to the planner")
+        if "retry" in action:
+            retry = call_tool(graph, shapes, action["tool"], action["retry"])
+            corrected += not _failed(retry)
+            out(f"     planner retries: {_text(retry)}")
+    out(f"{blocked} of {len(actions)} planner actions blocked before they ran; {corrected} corrected on retry.")
+    return {"synonyms": len(synonyms), "entity_types": len(targets), "actions": len(actions),
+            "blocked": blocked, "corrected": corrected}
+
+
+def _failed(result: Mapping[str, Any]) -> bool:
+    return "error" in result or result["isError"]
+
+
+def _text(result: Mapping[str, Any]) -> str:
+    return result["error"]["message"] if "error" in result else result["content"][0]["text"]
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -376,12 +428,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         return int(exc.code or 0)
     try:
         graph = load_ontology(args.ontology)
-        relations(graph), bindings(graph)  # fail early on an incomplete ontology
         if args.resolve is not None:
             if not args.resolve.strip():
                 print("error: --resolve needs a word", file=sys.stderr)
                 return 2
-            print(json.dumps(search_ontology(graph, args.resolve)))
+            print(json.dumps(resolve_term(graph, args.resolve)))
             return 0
         actions = load_actions(args.actions)
     except (OntologyError, ValueError) as exc:
