@@ -1,0 +1,5 @@
+{"tool": "propose_link", "arguments": {"subject": "order:42", "relation": "placedBy", "object": "cust:7"}}
+{"tool": "propose_link", "arguments": {"subject": "order:42", "relation": "placedBy", "object": "ship:9"}}
+{"tool": "propose_link", "arguments": {"subject": "ship:9", "relation": "shipsTo", "object": "cust:7"}}
+{"tool": "propose_link", "arguments": {"subject": "cust:8", "relation": "placedBy", "object": "order:43"}}
+{"tool": "propose_link", "arguments": {"subject": "order:43", "relation": "placedBy", "object": "cust:8"}}

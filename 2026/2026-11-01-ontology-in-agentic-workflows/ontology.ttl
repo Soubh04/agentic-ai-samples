@@ -1,0 +1,42 @@
+# A fictional shop ontology for the sample: three entity types, two relationships and their data bindings.
+# Synonyms are SKOS labels on one class, never extra classes. Bindings are annotations: the data stays in its tables.
+
+@prefix :     <https://example.org/shop#> .
+@prefix bind: <https://example.org/bind#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+: a owl:Ontology ;
+  rdfs:label "Fictional shop ontology (sample data only)" .
+
+bind:table    a owl:AnnotationProperty .
+bind:key      a owl:AnnotationProperty .
+bind:idPrefix a owl:AnnotationProperty .
+
+# 1. Entities: one class per business concept.
+:Customer a owl:Class ;
+  skos:prefLabel "Customer" ;
+  skos:altLabel "client", "buyer", "account" ;
+  bind:table "crm.customers" ; bind:key "customer_id" ; bind:idPrefix "cust" .
+
+:Order a owl:Class ;
+  skos:prefLabel "Order" ;
+  skos:altLabel "purchase" ;
+  bind:table "sales.orders" ; bind:key "order_id" ; bind:idPrefix "order" .
+
+:Shipment a owl:Class ;
+  skos:prefLabel "Shipment" ;
+  skos:altLabel "delivery", "parcel" ;
+  bind:table "wms.shipments" ; bind:key "ship_id" ; bind:idPrefix "ship" .
+
+# 2. Relationships: domain and range say which entity may link to which.
+:placedBy a owl:ObjectProperty ;
+  skos:prefLabel "placed by" ;
+  rdfs:domain :Order ;
+  rdfs:range :Customer .
+
+:shipsTo a owl:ObjectProperty ;
+  skos:prefLabel "ships to" ;
+  rdfs:domain :Shipment ;
+  rdfs:range :Customer .
