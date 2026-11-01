@@ -7,7 +7,7 @@ through two tools, generates the tools' JSON Schema enums and ID pattern from th
 planner's proposed links through SHACL shapes generated from `rdfs:domain` and `rdfs:range`. A rejected link goes back
 to the planner as an MCP tool result with `isError: true`, and the scripted planner corrects one of them on a retry.
 
-LinkedIn post: (link added after publishing)
+LinkedIn post: https://www.linkedin.com/posts/soubh_agenticai-ontology-knowledgegraph-share-7522729127855026176-BqIo/
 
 > **This sample calls no cloud service and no model.** The planner is a scripted list of tool calls, and the tables are
 > a small in-memory fake. The tools are local Python functions in the shape of MCP tools. They are not the Microsoft

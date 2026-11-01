@@ -13,7 +13,7 @@ Runnable code behind [Soubh's](https://www.linkedin.com/in/soubh/) weekly Linked
 | 2026-10-24 | Agent memory: short-term vs long-term | [2026-10-24-agent-memory-short-vs-long-term](2026/2026-10-24-agent-memory-short-vs-long-term) | Coming soon |
 | 2026-10-24 | Azure vs AWS vs Google Cloud: the agent stack | [2026-10-24-ai-agent-stack-azure-aws-gcp](2026/2026-10-24-ai-agent-stack-azure-aws-gcp) | [Post](https://www.linkedin.com/posts/soubh_agenticai-azure-aws-share-7519810690413383681-Kc8O/) |
 | 2026-10-28 | Evaluating AI agents: what to measure before you ship | [2026-10-28-evaluating-ai-agents](2026/2026-10-28-evaluating-ai-agents) | [Post](https://www.linkedin.com/posts/soubh_agenticai-aiagents-llmevaluation-share-7521280093390909442-FxeD/) |
-| 2026-11-01 | Ontology in agentic workflows: name the business once | [2026-11-01-ontology-in-agentic-workflows](2026/2026-11-01-ontology-in-agentic-workflows) | Coming soon |
+| 2026-11-01 | Ontology in agentic workflows: name the business once | [2026-11-01-ontology-in-agentic-workflows](2026/2026-11-01-ontology-in-agentic-workflows) | [Post](https://www.linkedin.com/posts/soubh_agenticai-ontology-knowledgegraph-share-7522729127855026176-BqIo/) |
 
 ## Run a sample
 
